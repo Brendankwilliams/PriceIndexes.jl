@@ -1,5 +1,8 @@
 module PriceIndexes
 
-# Write your package code here.
+include("BilateralIndexFormulas.jl")
+using .BilateralIndexFormulas
+
+using DataFrames, Statistics, StatsBase, Dates
 
 end
