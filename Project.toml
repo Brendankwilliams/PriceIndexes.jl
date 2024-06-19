@@ -1,0 +1,13 @@
+name = "PriceIndexes"
+uuid = "65be50f5-f1a3-46f9-a2e1-81d51e90197b"
+authors = ["Brendan Williams"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
