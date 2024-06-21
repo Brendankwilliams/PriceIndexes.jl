@@ -1,8 +1,9 @@
 module BilateralIndexFormulas
 using DataFrames, Statistics, StatsBase
 
-export laspeyres, paasche, fisher, carli, dutot, cswd, bmw, drobish, tornqvist, jevons
-
+export laspeyres, paasche, fisher, carli, dutot, cswd, bmw, drobisch, tornqvist, jevons,
+    sato_vartia, marshall_edgeworth, geary_khamis, palgrave, harmonic, banerjee, bialek, davies, lehr, stuvel,
+    walsh, lloyd_moulton, montgomery_vartia
 """
     laspeyres(p1::Vector{float64}, p0::Vector{float64}, q0::Vector{Float64} )
 Laspeyres function with only vectors as inputs
@@ -84,11 +85,11 @@ function bmw(p1::Vector{Float64}, p0::Vector{Float64})
     return numer / denom
 end
 """
-    drobish(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64} )
+    drobisch(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64} )
 
 
 """
-function drobish(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+function drobisch(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
     return (laspeyres(p1, p0, q0) + paasche(p1, p0, q1)) / 2.0
 end
 
@@ -168,6 +169,13 @@ function vartia_L(a::Float64, b::Float64)
     end
 end
 
+function vartia_L(a::Vector{Float64}, b::Vector{Float64})
+    if b == a 
+        return b
+    else
+        return (a-b) ./ (log.(a)-log.(b))
+    end
+end
 """
     montgomery_vartia(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
 
@@ -221,10 +229,12 @@ function lehr(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0:
 
     return ( sum(expend1)/denom * numer/sum(expend0) )
 end
+
 """
     banerjee(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
 
-TBW
+On the factorial approach providing the true index of cost of living: an interpretation of a special pair of equations
+K.S. Banerjee (1977)
 """
 function banerjee(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
     expend0 = p0 .* q0
@@ -233,6 +243,11 @@ function banerjee(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64},
     return (sum(expend1)/sum(expend0)) * sum(expend0 .* (1.0 .+ p1 ./ p0))/sum(expend1 .* (1.0 .+ p0 ./ p1))
 end
 
+"""
+    davies(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+
+TBW
+"""
 function davies(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
     expend0 = p0 .* q0
     expend1 = p1 .* q1
