@@ -3,9 +3,12 @@ using Test
 
 p0 = [2.0, 1.0, 1.0, 0.5]
 p1 = [1.75, 0.5, 0.95, 0.55]
+p_end = [1.5, 1.1, 0.85, 0.65] #end period where p1 and q1 are used as base
 q0 = [0.384615385, 1.538461538, 1.538461538, 12.30769231]
 q1 = [0.58466256, 7.162116362, 1.983965751, 11.83820886]
-σ = 0.7
+q_end = [0.9149417, 1.7013378, 2.8492993, 9.7449408] #end period where p1 and q1 are used as base
+σ = 0.7 #elasticity for Lloyd-Moulton 
+
 
 @testset "Bilateral Formulas" begin
     @test PriceIndexes.bmw(p1, p0) ≈ 0.82147799421931 atol=1e-5
@@ -31,6 +34,15 @@ q1 = [0.58466256, 7.162116362, 1.983965751, 11.83820886]
     @test PriceIndexes.montgomery_vartia(p1, p0, q1, q0) ≈ 0.894193937668097 atol=1e-5
     @test PriceIndexes.walsh(p1, p0, q1, q0) ≈ 0.895264545283374 atol=1e-5
     @test PriceIndexes.lloyd_moulton(p1, p0, q0, σ) ≈ 0.9463576 atol=1e-5
+    @test PriceIndexes.ag_mean(p1, p0, q0, 0.7) ≈ 0.9453866 atol=1e-5
+    @test PriceIndexes.geolaspeyres(p1, p0, q0) ≈ 0.9359918 atol=1e-5
+    @test PriceIndexes.geopaasche(p1, p0, q1) ≈ 0.8511654 atol=1e-5
+    # base quantity formula tests
+    @test PriceIndexes.lowe(p_end, p0, q1) ≈ 1.117159 atol=1e-5
+    #@test PriceIndexes.geolowe(p_end, p0, q0) ≈ 1.101997 atol=1e-5
+    #@test PriceIndexes.geoyoung(p_end, p0, p0, q0) ≈ 1.117903 atol=1e-5
+    @test PriceIndexes.young(p_end, p0, p1, q1) ≈ 1.136377 atol=1e-5
+
 
 end
 

@@ -3,7 +3,7 @@ using DataFrames, Statistics, StatsBase
 
 export laspeyres, paasche, fisher, carli, dutot, cswd, bmw, drobisch, tornqvist, jevons,
     sato_vartia, marshall_edgeworth, geary_khamis, palgrave, harmonic, banerjee, bialek, davies, lehr, stuvel,
-    walsh, lloyd_moulton, montgomery_vartia
+    walsh, lloyd_moulton, montgomery_vartia, lowe, geolowe, young, geoyoung, geolaspeyres, geopaasche, ag_mean
 """
     laspeyres(p1::Vector{float64}, p0::Vector{float64}, q0::Vector{Float64} )
 Laspeyres function with only vectors as inputs
@@ -149,7 +149,7 @@ function sato_vartia(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float6
 
     weight_share1 = expend1 ./ total_expend1
     weight_share0 = expend0 ./ total_expend0
-    #sv_weight_share = (weight_share1-weight_share0) ./ (log.(weight_share1)-log.(weight_share0))
+
     sv_weight_share = vartia_L(weight_share1, weight_share0)
     #Normalize weight share
     sv_weight_share_norm = sv_weight_share/sum(sv_weight_share)
@@ -161,7 +161,7 @@ end
 
     Helper function related to Sato-Vartia and montgomery-vartia
 """
-function vartia_L(a::Float64, b::Float64)
+function vartia_L(a::Vector{Float64}, b::Vector{Float64})
     if b == a 
         return b
     else
@@ -169,7 +169,12 @@ function vartia_L(a::Float64, b::Float64)
     end
 end
 
-function vartia_L(a::Vector{Float64}, b::Vector{Float64})
+"""
+    vartia_L(a::Float64}, b::Float64)
+
+montgomery_vartia uses the method with float, while sato_vartia uses the method with float vectors
+"""
+function vartia_L(a::Float64, b::Float64)
     if b == a 
         return b
     else
@@ -206,9 +211,7 @@ end
 
 """
 function stuvel(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
-   # lasp_Q = sum(p0 .* q1) / sum(p0 .* q0)
-   # lasp_P = sum(p1 .* q0) / sum(p0 .* q0) 
-    #The term A is the difference between the laspeyres price and quuantity indexes, divided by 2.0
+    # A is the difference between the laspeyres price and quuantity indexes, divided by 2.0
     A = (sum(p1 .* q0) / sum(p0 .* q0) - sum(p0 .* q1) / sum(p0 .* q0) )/2.0
     v1 = sum(p1 .* q1)
     v0 = sum(p0 .* q0)
@@ -255,6 +258,50 @@ function davies(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q
     return (sum(expend1)/sum(expend0)) * sum(expend0 .* sqrt.(p1 ./ p0))/sum(expend1 .* sqrt.(p0 ./ p1))
 end
 
+"""
+    lowe(p1::Vector{Float64}, p0::Vector{Float64}, q_b::Vector{Float64},)
+
+TBW
+"""
+function lowe(p1::Vector{Float64}, p0::Vector{Float64}, q_b::Vector{Float64})
+    return sum(p1 .* q_b) / (sum(p0 .* q_b))
+end
+
+function young(p1::Vector{Float64}, p0::Vector{Float64}, p_b::Vector{Float64}, q_b::Vector{Float64})
+    expendB = p_b .* q_b
+    total_expendB = sum(expendB)
+    weight_shareB = expendB ./ total_expendB
+
+    return sum(weight_shareB .* (p1 ./  p0))
+end
+
+function geolaspeyres(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64})
+    expend0 = p0 .* q0
+    total_expend0 = sum(expend0)
+    weight_share0 = expend0 ./ total_expend0
+
+    return exp(sum(weight_share0 .* log.(p1 ./ p0)))
+end
+
+function geopaasche(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64})
+    expend1 = p1 .* q1
+    total_expend1 = sum(expend1)
+    weight_share1 = expend1 ./ total_expend1
+
+    return exp(sum(weight_share1 .* log.(p1 ./ p0)))
+end
+
+"""
+    ag_mean(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64})
+
+    The AG Mean is the weighted average of the Laspeyres and geometric Laspeyres indexes with η indicating the
+    relative weight on each. Lent and Dorfman (2009) introduced this formula and it is discussed in Armknect and
+    Silver (2012).
+"""
+function ag_mean(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64}, η::Float64)
+    return η * geolaspeyres(p1, p0, q0) + (1-η) * laspeyres(p1, p0, q0)
+end
+
 function raito_of_harmonic_means()
     
 end
@@ -262,4 +309,4 @@ end
 function białek()
 end
 
-end
+end # module BilateralIndexFormulas

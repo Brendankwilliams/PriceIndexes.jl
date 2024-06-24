@@ -5,4 +5,4 @@ using .BilateralIndexFormulas
 
 using DataFrames, Statistics, StatsBase, Dates
 
-end
+end # module PriceIndexes
