@@ -2,7 +2,7 @@ module BilateralIndexFormulas
 using DataFrames, Statistics, StatsBase
 
 export laspeyres, paasche, fisher, carli, dutot, cswd, bmw, drobisch, tornqvist, jevons,
-    sato_vartia, marshall_edgeworth, geary_khamis, palgrave, harmonic, banerjee, bialek, davies, lehr, stuvel,
+    sato_vartia, marshall_edgeworth, geary_khamis_bi, palgrave, harmonic, banerjee, bialek, davies, lehr, stuvel,
     walsh, lloyd_moulton, montgomery_vartia, lowe, geolowe, young, geoyoung, geolaspeyres, geopaasche, ag_mean
 """
     laspeyres(p1::Vector{float64}, p0::Vector{float64}, q0::Vector{Float64} )
@@ -110,9 +110,9 @@ function walsh(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0
 end
 
 """
-    geary_khamis(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+    geary_khamis_bi(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
 """
-function geary_khamis(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+function geary_khamis_bi(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
     #Calculate the harmonic mean of q for each element of q1 and the corresponding q0
     harm_q = 1 ./ (1 ./ q1 + 1 ./ q0)
     return sum(harm_q .* p1) / sum(harm_q .* p0)

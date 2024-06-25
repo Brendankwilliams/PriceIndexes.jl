@@ -3,6 +3,9 @@ module PriceIndexes
 include("BilateralIndexFormulas.jl")
 using .BilateralIndexFormulas
 
-using DataFrames, Statistics, StatsBase, Dates
+include("MultilateralIndexFormulas.jl")
+using .MultilateralIndexFormulas
+
+using DataFrames, Statistics, StatsBase, Dates, LinearAlgebra
 
 end # module PriceIndexes
