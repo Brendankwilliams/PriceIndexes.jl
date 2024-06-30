@@ -77,4 +77,7 @@ quantity_matrix = [
 
 @testset "MultilateralIndexFormulas Formulas" begin
     @test PriceIndexes.geary_khamis(price_matrix, quantity_matrix)[12] ≈ 1.2324531452384582 atol=1e-5
+    @test PriceIndexes.CCDI(price_matrix, quantity_matrix)[12] ≈ 1.1328205 atol=1e-5
+    @test PriceIndexes.GEKS(price_matrix, quantity_matrix)[12] ≈ 1.1152731 atol=1e-5
+    @test PriceIndexes.GEKS_general(price_matrix, quantity_matrix, PriceIndexes.walsh)[12] ≈ 1.1370031 atol=1e-5
 end # @testset "MultilateralIndexFormulas Formulas"
