@@ -3,7 +3,8 @@ using ..BilateralIndexFormulas # Import the functions from the BilateralIndexFor
 using DataFrames
 using LinearAlgebra
 
-export geary_khamis, GEKS, GEKS_general, CCDI
+export geary_khamis, GEKS, GEKS_general, CCDI, similarity_linking, paasche_laspeyres_spread, predicted_share_diff, 
+quantity_diff, spq, similarity_score
 
 function geary_khamis(df::DataFrame)
     # Unstack the DataFrame to create a matrix for the values of x
@@ -132,6 +133,96 @@ function GEKS_general(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Flo
     #Alternative geometric mean calculation exp.(cumsum(log.(bilat_matrix), dims =1)./12)
     results = cumprod(bilat_matrix, dims=1)[12, :].^(1/12) #Get geometric average
     return results/results[1] #Normalize to first period and return results
+end
+
+#Similarity linking
+
+function predicted_share_diff(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+    #Note: Diewert's predicted_share_diff measure is applied with carryforward prices and zero quantity
+    sum_squared_error1 = sum( ((p1 .* q1) ./ sum(p1 .* q1) - (p0 .* q1) ./ sum(p0 .* q1)).^2 )
+    sum_squared_error0 = sum( ((p1 .* q0) ./ sum(p1 .* q0) - (p0 .* q0) ./ sum(p0 .* q0)).^2 )
+    
+    return sum_squared_error1 + sum_squared_error0 
+end
+
+function quantity_diff(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+    sum_squared_error1 = sum( ((q1 .* p1) ./ sum(q1 .* p1) - (q0 .* p1) ./ sum(q0 .* p1)).^2 )
+    sum_squared_error0 = sum( ((q1 .* p0) ./ sum(q1 .* p0) - (q0 .* p0) ./ sum(q0 .* p0)).^2 )
+    
+    return sum_squared_error1 + sum_squared_error0 
+end
+
+function paasche_laspeyres_spread(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+    return abs(log( paasche(p1, p0, q1)/laspeyres(p1, p0, q0 )))
+end
+
+function similarity_score(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, 
+    dissimilarity_measure::Function, index_formula::Function)
+
+    time_num = size(price_matrix)[1]
+
+    similarity_scores = ones(time_num, time_num)
+        
+    for r in 1:time_num
+        for c in (r+1):time_num 
+            similarity_scores[r, c] = dissimilarity_measure(price_matrix[r, :], price_matrix[c, :],
+                quantity_matrix[r, :], quantity_matrix[c, :])
+        end
+    end
+    
+    return similarity_scores
+end
+
+function similarity_linking(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, 
+    dissimilarity_measure::Function, index_formula::Function)
+
+    time_num = size(price_matrix)[1]
+    similarity_matrix = similarity_score(price_matrix, quantity_matrix, dissimilarity_measure, index_formula)
+
+    matching_prior_period = [findmin(similarity_matrix[1:col-1, col])[2] for col in 3:time_num]
+
+    similarity_index = Vector{Float64}(undef, time_num)
+
+    similarity_index[1] = 1.0
+    similarity_index[2] = index_formula(price_matrix[2, :], price_matrix[1, :], 
+        quantity_matrix[2, :], quantity_matrix[1, :])
+
+    
+    for N in 3:time_num
+        sim_time = matching_prior_period[N-2]
+        similarity_index[N] = index_formula(price_matrix[N, :], price_matrix[sim_time, :], 
+            quantity_matrix[N, :], quantity_matrix[sim_time, :]) * similarity_index[sim_time]
+    end
+
+    return similarity_index
+    
+end
+
+function spq(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, index_formula::Function)
+    time_num = size(price_matrix)[1]
+
+    p_similarity = similarity_score(price_matrix, quantity_matrix, predicted_share_diff, index_formula)
+    q_similarity = similarity_score(price_matrix, quantity_matrix, quantity_diff, index_formula)
+
+    SPQ_min_scores = min.(p_similarity, q_similarity)
+
+    matching_prior_period = [findmin(SPQ_min_scores[1:col-1, col])[2] for col in 3:time_num]
+
+    similarity_index = Vector{Float64}(undef, time_num)
+
+    similarity_index[1] = 1.0
+    similarity_index[2] = index_formula(price_matrix[2, :], price_matrix[1, :], 
+        quantity_matrix[2, :], quantity_matrix[1, :])
+
+    
+    for N in 3:time_num
+        sim_time = matching_prior_period[N-2]
+        similarity_index[N] = index_formula(price_matrix[N, :], price_matrix[sim_time, :], 
+            quantity_matrix[N, :], quantity_matrix[sim_time, :]) * similarity_index[sim_time]
+    end
+
+    return similarity_index
+    
 end
 
 end #module MultilateralIndexFormulas

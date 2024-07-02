@@ -11,12 +11,18 @@ Laspeyres function with only vectors as inputs
 function laspeyres(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64})
     return sum(p1 .* q0) / (sum(p0 .* q0))
 end
+function laspeyres(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
+    return sum(p1 .* q0) / (sum(p0 .* q0))
+end
 
 """
     paasche(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64} )
     paasche function with only vectors as inputs
 """
 function paasche(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64})
+    return sum(p1 .* q1) / (sum(p0 .* q1))
+end
+function paasche(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
     return sum(p1 .* q1) / (sum(p0 .* q1))
 end
 

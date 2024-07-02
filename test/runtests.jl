@@ -80,4 +80,9 @@ quantity_matrix = [
     @test PriceIndexes.CCDI(price_matrix, quantity_matrix)[12] ≈ 1.1328205 atol=1e-5
     @test PriceIndexes.GEKS(price_matrix, quantity_matrix)[12] ≈ 1.1152731 atol=1e-5
     @test PriceIndexes.GEKS_general(price_matrix, quantity_matrix, PriceIndexes.walsh)[12] ≈ 1.1370031 atol=1e-5
+    @test PriceIndexes.similarity_linking(price_matrix, quantity_matrix, 
+        PriceIndexes.predicted_share_diff, PriceIndexes.laspeyres)[12] ≈  1.18350857 atol=1e-5
+    @test PriceIndexes.similarity_linking(price_matrix, quantity_matrix, 
+        PriceIndexes.paasche_laspeyres_spread, PriceIndexes.tornqvist)[12] ≈  1.1366808 atol=1e-5
+    @test PriceIndexes.spq(price_matrix, quantity_matrix, PriceIndexes.fisher)[12] ≈  1.1351674 atol=1e-5
 end # @testset "MultilateralIndexFormulas Formulas"
