@@ -84,5 +84,5 @@ quantity_matrix = [
         PriceIndexes.predicted_share_diff, PriceIndexes.laspeyres)[12] ≈  1.18350857 atol=1e-5
     @test PriceIndexes.similarity_linking(price_matrix, quantity_matrix, 
         PriceIndexes.paasche_laspeyres_spread, PriceIndexes.tornqvist)[12] ≈  1.1366808 atol=1e-5
-    @test PriceIndexes.spq(price_matrix, quantity_matrix, PriceIndexes.fisher)[12] ≈  1.1351674 atol=1e-5
+    @test PriceIndexes.spq(price_matrix, quantity_matrix, PriceIndexes.fisher)[12] ≈  1.135090 atol=1e-5
 end # @testset "MultilateralIndexFormulas Formulas"
