@@ -7,9 +7,9 @@ using DataFrames, Dates
 #Use in pricerelativeFrame constuctor
 #function sort_dataframe(df::DataFrame, sort_by::Union{Symbol, Vector{Symbol}}=:ColName)
 struct PriceRelativeFrame 
-    gdf::GroupedDataFrame
-    curr_miss_df::GroupedDataFrame
-    prior_miss_df::GroupedDataFrame
+    rel_df::DataFrame
+    curr_miss_df::DataFrame
+    prior_miss_df::DataFrame
     epoch_date::Date
     time_unit::String
     time_frequency::Int32
@@ -18,16 +18,19 @@ struct PriceRelativeFrame
     price_variable::Symbol
     quantity_variable::Symbol
 
-    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Int32, 
-        product_definition, output_variables::Vector{Symbol}, price_variable, quantity_variable)
+    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Int64, 
+        product_definition::Vector{Symbol}, output_variables::Vector{Symbol}, 
+        price_variable::Symbol, quantity_variable::Symbol)
+        
         df.time = Date.(df.time, "m/d/yyyy")
         #Convert to time index
-        df = time_periods_since_epoch(df, :time, epoch_date, time_unit)
+        df.time_count = calculate_periods.(df.time, epoch_date, time_unit)
         
         #Merge dataframe by frequency, outputlevel, and product definition, and then group by output level
-        gdf = groupby(df, output_variables)
+        rel_df, curr_miss_df, prior_miss_df = mergePricePeriods(df, time_frequency, 
+            product_definition, output_variables)
         #calculate price relative and expenditure
-        new(gdf, curr_miss_df, prior_miss_df, epoch_date,time_unit, time_frequency, 
+        new(rel_df, curr_miss_df, prior_miss_df, epoch_date, time_unit, time_frequency, 
             output_variables, product_definition, price_variable, quantity_variable)
     end
 end
@@ -36,7 +39,7 @@ function mergePricePeriods(df1::DataFrame, time_frequency::Int64,
     productDefCols::Union{Symbol,Vector{Symbol}}=:prodID, outputLevelCols::Union{Symbol,Vector{Symbol}}=:time)
     df1.expend = df1.prices .* df1.quantities
     df2 = deepcopy(df1) #Use a deep copy of the data and lag it in order to merge
-    df2.time = df2.time .+ time_frequency
+    df2.time_count  = df2.time_count .+ time_frequency
 
     # [;] combines two vectors of symbols
     joinCols = [productDefCols; outputLevelCols]
@@ -51,18 +54,7 @@ function mergePricePeriods(df1::DataFrame, time_frequency::Int64,
     return comboDF, curr_miss_df, prior_miss_df
 end
 
-
-# Function to calculate periods since epoch
-function time_periods_since_epoch(df::DataFrame, date_column::Symbol, epoch::Date, period::String)
-
-    # Calculate the number of periods since the epoch
-    periods_since_epoch = [calculate_periods(row[date_column], epoch, period) for row in eachrow(df)]
-
-    # Return a new DataFrame with the calculated periods
-    return hcat(df, DataFrame(PeriodsSinceEpoch = periods_since_epoch))
-end
-
-# Helper function to calculate periods
+#  function to calculate periods
 function calculate_periods(date::Date, epoch::Date, time_unit::String)
     if time_unit == "days" 
         return Dates.value(date - epoch)
@@ -77,8 +69,8 @@ function calculate_periods(date::Date, epoch::Date, time_unit::String)
     else
         throw(ArgumentError("Invalid period specified. Choose from days, weeks, months, quarters, or years"))
     end
-end
+end 
 
 
 
-end
+end #end module PriceRelativeFrame
