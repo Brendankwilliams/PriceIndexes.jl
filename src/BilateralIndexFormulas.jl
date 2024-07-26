@@ -205,7 +205,7 @@ end
     lloyd_moulton(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64}, σ::Float64)
 
 """
-function lloyd_moulton(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Float64}, σ::Float64)
+function lloyd_moulton(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray, σ::Float64)
     expend0 = p0 .* q0
     total_expend0 = sum(expend0)
     weight_share0 = expend0 ./ total_expend0

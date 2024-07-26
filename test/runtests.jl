@@ -33,7 +33,7 @@ q_end = [0.9149417, 1.7013378, 2.8492993, 9.7449408] #end period where p1 and q1
     @test PriceIndexes.montgomery_vartia(p1, p0, q1, q0) ≈ 0.894193937668097 atol=1e-5
     @test PriceIndexes.walsh(p1, p0, q1, q0) ≈ 0.895264545283374 atol=1e-5
     @test PriceIndexes.lloyd_moulton(p1, p0, q0, σ) ≈ 0.9463576 atol=1e-5
-    @test PriceIndexes.lloyd_moulton(p1, p0, q0; σ = 0.7) ≈ 0.9463576 atol=1e-5
+    @test PriceIndexes.lloyd_moulton(p1, p0, q1, q0; σ = 0.7) ≈ 0.9463576 atol=1e-5
     @test PriceIndexes.ag_mean(p1, p0, q0, 0.7) ≈ 0.9453866 atol=1e-5
     @test PriceIndexes.geolaspeyres(p1, p0, q0) ≈ 0.9359918 atol=1e-5
     @test PriceIndexes.geopaasche(p1, p0, q1) ≈ 0.8511654 atol=1e-5
