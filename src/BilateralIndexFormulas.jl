@@ -211,6 +211,11 @@ function lloyd_moulton(p1::Vector{Float64}, p0::Vector{Float64}, q0::Vector{Floa
     weight_share0 = expend0 ./ total_expend0
     return sum(weight_share0  .* ((p1 ./ p0) .^ (1 - σ))) ^ (1 /(1-σ))
 end
+#Version of lloyd_moulton that takes a general call with kwargs and extracts the σ
+function lloyd_moulton(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray; kwargs...)
+    σ = get(kwargs, :σ, 0.7)  #Set 0.7 as default
+    return lloyd_moulton(p1, p0, q0, σ)
+end
 
 """
     stuvel(p1::Vector{Float64}, p0::Vector{Float64}, q1::Vector{Float64}, q0::Vector{Float64})
