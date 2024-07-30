@@ -323,11 +323,13 @@ function young(p1::AbstractArray, p0::AbstractArray, p_b::AbstractArray, q_b::Ab
 
     return sum(weight_shareB .* (p1 ./  p0))
 end
+"""
 function young(p1::AbstractArray, p0::AbstractArray, ::AbstractArray, ::AbstractArray; kwargs...)
     p_b = get(kwargs, :p_b, 0)  
     q_b = get(kwargs, :q_b, 0)  
     return young(p1, p0, p_b, q_b)
 end
+"""
 
 function geolaspeyres(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray)
     expend0 = p0 .* q0
@@ -361,7 +363,7 @@ end
 function ag_mean(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray, η::Float64)
     return η * geolaspeyres(p1, p0, q0) + (1-η) * laspeyres(p1, p0, q0)
 end
-function ag_mean(p1::AbstractArray, p0::AbstractArray, ::AbstractArray, q0::AbstractArray); kwargs...)
+function ag_mean(p1::AbstractArray, p0::AbstractArray, ::AbstractArray, q0::AbstractArray; kwargs...)
     η = get(kwargs, :η, 0) 
     return ag_mean(p1, p0, q0, η)
 end

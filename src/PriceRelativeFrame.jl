@@ -1,34 +1,12 @@
 module PriceRelativeFrame
 using DataFrames, Dates
 
+export date_to_period, period_to_date, merge_periods, merge_one_period
+
 #Module for creating a PriceRelativeFrame struct and related functions and structures
 
 
-#Use in pricerelativeFrame constuctor
-#function sort_dataframe(df::DataFrame, sort_by::Union{Symbol, Vector{Symbol}}=:ColName)
-mutable struct PriceRelativeFrame 
-    price_df::DataFrame
-    epoch_date::Date
-    time_unit::String
-    time_frequency::Integer
-    output_variables::Vector{Symbol}
-    product_definition::Vector{Symbol}
-    price_variable::Symbol
-    quantity_variable::Symbol
 
-    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, 
-        product_definition::Vector{Symbol}, output_variables::Vector{Symbol}, 
-        price_variable::Symbol, quantity_variable::Symbol)
-        
-        df.time = Date.(df.time, "m/d/yyyy")
-        #Convert to time index
-        df.time_count = calculate_periods.(df.time, epoch_date, time_unit)
-        
-        #calculate price relative and expenditure
-        new(df, epoch_date, time_unit, time_frequency, 
-            output_variables, product_definition, price_variable, quantity_variable)
-    end
-end
 
 """
     merge_periods(df1::DataFrame, time_frequency::Integer,
@@ -79,12 +57,12 @@ function merge_one_period(df1::DataFrame, time_period::Integer, time_frequency::
 end
 
 """
-    calculate_periods(date::Date, epoch::Date, time_unit::String)
+    date_to_period(date::Date, epoch::Date, time_unit::String)
 
     Take a date and a time unit and calculate the number of periods since epoch and create a time
     period count that can faciltate price index calculations without having to manipulate dates.
 """
-function calculate_periods(date::Date, epoch::Date, time_unit::String)
+function date_to_period(date::Date, epoch::Date, time_unit::String)
     if time_unit == "days" 
         return Dates.value(date - epoch)
     elseif time_unit == "weeks" #Defintion of week is determined by the day of the week of epoch
@@ -98,44 +76,23 @@ function calculate_periods(date::Date, epoch::Date, time_unit::String)
     else
         throw(ArgumentError("Invalid period specified. Choose from days, weeks, months, quarters, or years"))
     end
-end 
-
-
-function price_index(prf::PriceRelativeFrame, index_formula::Function; imputation=nothing, kwargs...)
-    #If no imputes, just apply formula time as by variable
-    if imputation == nothing
-        #Merge pricing periods and ignore prices that are unmatched to make relatives
-        matchDF = merge_periods(prf.price_df, prf.time_frequency,
-            prf.product_definition, [prf.output_variables; :time_count])
-        #Outlier removal TO BE ADDED
-        
-        #Group by for relative output level
-        gdf = groupby(matchDF, vcat(prf.output_variables, :time_count))
-        ans = combine(gdf,   [Symbol(prf.price_variable,"_1"), Symbol(prf.price_variable,"_0"),
-                            Symbol(prf.quantity_variable,"_1"), Symbol(prf.quantity_variable,"_0") ] => 
-                            ( (p1, p0, q1, q0) -> index_formula(p1, p0, q1, q0; kwargs...) ) => :price_index)
-    end
-    
-    #HANDLING OF IMPUTATION TO BE ADDED
-    return ans
-                
-    
-    #return a price relative frame where prices are index levels, expenditure calculate
 end
 
-function ksigma_outliers(prf::PriceRelativeFrame, groupby_col::Symbol = nothing)
-    if isnothing(groupby_col)
-        mean_val = mean(df[!, column])
-        std_val = std(df[!, column])
-        return df[abs.(df[!, column] .- mean_val) .<= x * std_val, :]
+function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
+    if time_unit == "days" 
+        return epoch + Day(period_count)
+    elseif time_unit == "weeks"
+        return epoch + Week(period_count)
+    elseif time_unit == "months"
+        return epoch + Month(period_count)
+    elseif time_unit == "years"
+        return epoch + Year(period_count)
     else
-        return combine(groupby(df, groupby_col)) do subdf
-            mean_val = mean(subdf[!, column])
-            std_val = std(subdf[!, column])
-            return subdf[abs.(subdf[!, column] .- mean_val) .<= x * std_val, :]
-        end
+        error("Unsupported unit. Use day, week, month, or year.")
     end
 end
+
+
 
 
 

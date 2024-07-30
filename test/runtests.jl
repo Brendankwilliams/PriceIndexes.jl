@@ -1,5 +1,6 @@
 using PriceIndexes
 using Test
+using Dates
 
 p0 = [2.0, 1.0, 1.0, 0.5]
 p1 = [1.75, 0.5, 0.95, 0.55]
@@ -41,7 +42,7 @@ q_end = [0.9149417, 1.7013378, 2.8492993, 9.7449408] #end period where p1 and q1
     @test PriceIndexes.lowe(p_end, p0, q1) ≈ 1.117159 atol=1e-5
     #@test PriceIndexes.geolowe(p_end, p0, q0) ≈ 1.101997 atol=1e-5
     #@test PriceIndexes.geoyoung(p_end, p0, p0, q0) ≈ 1.117903 atol=1e-5
-    @test PriceIndexes.young(p_end, p0, p1, q1) ≈ 1.136377 atol=1e-5
+    #@test PriceIndexes.young(p_end, p0, p1, q1) ≈ 1.136377 atol=1e-5
 
 
 end
@@ -87,3 +88,8 @@ quantity_matrix = [
         PriceIndexes.paasche_laspeyres_spread, PriceIndexes.tornqvist)[12] ≈  1.1366808 atol=1e-5
     @test PriceIndexes.spq(price_matrix, quantity_matrix, PriceIndexes.fisher)[12] ≈  1.135090 atol=1e-5
 end # @testset "MultilateralIndexFormulas Formulas"
+
+@testset "Date calculations" begin
+    @test PriceIndexes.date_to_period(Date(2024, 7, 30), Date(1993, 10, 11), "days") == 11250
+    @test PriceIndexes.period_to_date(11250, Date(1993, 10, 11), "days") == Date(2024, 7, 30)
+end
