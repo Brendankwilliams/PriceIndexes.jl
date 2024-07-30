@@ -16,7 +16,7 @@ mutable struct PriceRelativeFrame
     price_variable::Symbol
     quantity_variable::Symbol
 
-    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Int64, 
+    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, 
         product_definition::Vector{Symbol}, output_variables::Vector{Symbol}, 
         price_variable::Symbol, quantity_variable::Symbol)
         
