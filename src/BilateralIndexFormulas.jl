@@ -312,11 +312,11 @@ function lowe(p1::AbstractArray, p0::AbstractArray, ::AbstractArray, ::AbstractA
 end
 
 """
-    young(p1::AbstractArray, p0::AbstractArray, p_b::AbstractArray, q_b::AbstractArray)
+    young(p1::AbstractArray, p0::AbstractArray; p_b::AbstractArray, q_b::AbstractArray)
 
 TBW
 """
-function young(p1::AbstractArray, p0::AbstractArray, p_b::AbstractArray, q_b::AbstractArray)
+function young(p1::AbstractArray, p0::AbstractArray; p_b::AbstractArray, q_b::AbstractArray)
     expendB = p_b .* q_b
     total_expendB = sum(expendB)
     weight_shareB = expendB ./ total_expendB

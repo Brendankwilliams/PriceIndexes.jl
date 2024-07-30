@@ -42,7 +42,7 @@ q_end = [0.9149417, 1.7013378, 2.8492993, 9.7449408] #end period where p1 and q1
     @test PriceIndexes.lowe(p_end, p0, q1) ≈ 1.117159 atol=1e-5
     #@test PriceIndexes.geolowe(p_end, p0, q0) ≈ 1.101997 atol=1e-5
     #@test PriceIndexes.geoyoung(p_end, p0, p0, q0) ≈ 1.117903 atol=1e-5
-    #@test PriceIndexes.young(p_end, p0, p1, q1) ≈ 1.136377 atol=1e-5
+    @test PriceIndexes.young(p_end, p0; p_b = p1, q_b = q1) ≈ 1.136377 atol=1e-5
 
 
 end
