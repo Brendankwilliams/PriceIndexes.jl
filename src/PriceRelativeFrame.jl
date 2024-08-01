@@ -60,7 +60,10 @@ end
     date_to_period(date::Date, epoch::Date, time_unit::String)
 
     Take a date and a time unit and calculate the number of periods since epoch and create a time
-    period count that can faciltate price index calculations without having to manipulate dates.
+    period count that can faciltate price index calculations without having to manipulate dates. For periods
+    greater than "day," the first day of the period should represent the whole period. The epoch date 
+    establishes beginning of the time unit. For example, an epoch date on a Monday establishes a week
+    definition that starts on Monday, and an epoch date in September establishes a year that starts in September
 """
 function date_to_period(date::Date, epoch::Date, time_unit::String)
     if time_unit == "days" 
@@ -74,10 +77,17 @@ function date_to_period(date::Date, epoch::Date, time_unit::String)
     elseif time_unit == "years"
         return div((year(date) - year(epoch)) * 12 + (month(date) - month(epoch)), 12)
     else
-        throw(ArgumentError("Invalid period specified. Choose from days, weeks, months, quarters, or years"))
+        throw(ArgumentError("Invalid period specified. Choose from days, weeks, months, quarters, or years."))
     end
 end
 
+"""
+    period_to_date(period_count::Integer, epoch::Date, time_unit::String)
+
+    Convert a period count back to a date given an epoch date and time unit. 
+    After price index calculations have been completed, this function will convert calculation 
+    friendly period counts to user friendly dates.
+"""
 function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
     if time_unit == "days" 
         return epoch + Day(period_count)
@@ -85,10 +95,12 @@ function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
         return epoch + Week(period_count)
     elseif time_unit == "months"
         return epoch + Month(period_count)
+    elseif time_unit == "quarters"
+        return epoch + Month(3*period_count)
     elseif time_unit == "years"
         return epoch + Year(period_count)
     else
-        error("Unsupported unit. Use day, week, month, or year.")
+        throw(ArgumentError("Invalid period specified. Choose from days, weeks, months, quarters, or years."))
     end
 end
 
