@@ -1,11 +1,84 @@
 module PriceRelativeFrame
 using DataFrames, Dates
 
-export date_to_period, period_to_date, merge_periods, merge_one_period
+export date_to_period, period_to_date, merge_periods, merge_one_period, merge_direct_periods, IndexFrame, direct_index,
+    PriceRelativeFrame
 
 #Module for creating a PriceRelativeFrame struct and related functions and structures
+abstract type AbstractPriceFrame end
+
+#merge data frames with dynamic byvals
+#Use in pricerelativeFrame constuctor
+#function sort_dataframe(df::DataFrame, sort_by::Union{Symbol, Vector{Symbol}}=:ColName)
+mutable struct PriceRelativeFrame <: AbstractPriceFrame
+    price_df::DataFrame
+    epoch_date::Date
+    time_unit::String
+    time_frequency::Integer
+    output_variables::Vector{Symbol}
+    product_definition::Vector{Symbol}
+    price_variable::Symbol
+    quantity_variable::Symbol
 
 
+    function PriceRelativeFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, 
+        product_definition::Vector{Symbol}, output_variables::Vector{Symbol}, 
+        price_variable::Symbol, quantity_variable::Symbol)
+        
+        df.time = Date.(df.time, "m/d/yyyy")
+        #Convert to time index
+        df.time_count = calculate_periods.(df.time, epoch_date, time_unit)
+        
+        #Merge dataframe by frequency, outputlevel, and product definition, and then group by output level
+
+        #calculate price relative and expenditure
+        new(df, epoch_date, time_unit, time_frequency, 
+            output_variables, product_definition, price_variable, quantity_variable)
+    end
+end
+
+function PriceRelativeFrame(df::DataFrame; epoch_date::Date=Date(1978, 1, 1), time_unit::String="Month",
+    time_frequency::Integer=1, product_definition::Vector{Symbol}=:product_id, output_variables::Vector{Symbol}=Symbol[], 
+    price_variable::Symbol=:price, quantity_variable::Symbol=:quantity))
+    return PriceRelativeFrame(df, epoch_date, time_unit, time_frequency, product_definition, 
+        output_variables, price_variable, quantity_variable)
+end
+
+#Create IndexFrame as a type of PriceRelativeFrame. Should inherit functions from PRF but allow new functions
+#e.g. to convert relatives 
+mutable struct IndexFrame <: AbstractPriceFrame 
+    price_df::DataFrame #Need same name as PriceRelativeFZrame
+    epoch_date::Date
+    time_unit::String
+    time_frequency::Integer
+    output_variables::Vector{Symbol}
+    price_variable::Symbol
+    quantity_variable::Symbol
+    relative_variable::Symbol #Added variable compared to PriceRelativeFrame
+    index_type::String #chained, direct, multilateral?
+    base_date::Date #Base date for index to be set at 100
+    
+    function IndexFrame(index_df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, output_variables::Vector{Symbol},
+            price_variable::Symbol, quantity_variable::Symbol, relative_variable::Symbol, index_type::String, base_date::Date)
+        if index_type ∉ ["chained", "direct", "multilateral"]
+            error("Invalid identifier. Must be one of \"chained\", \"direct\", or \"multilateral\".")
+        end
+        
+        #Convert time_count back to date format
+        index_df[!, :Date] = period_to_date.(index_df[!, :time_count], epoch_date, time_unit)
+        
+        new(index_df, epoch_date, time_unit, time_frequency, output_variables, price_variable, 
+            quantity_variable, relative_variable, index_type, base_date)
+    end
+end
+
+#Constructor that inherits most values from a parent price relative frame
+#Use a January 1, 1978 epoch that starts on a Sunday to set a week definition with weeks starting on Sunday
+#NEED TO FIX EXPENDITURE
+function IndexFrame(index_df::DataFrame, parent_df::AbstractPriceFrame; index_type::String, base_date::Date)
+    return IndexFrame(index_df, parent_df.epoch_date, parent_df.time_unit, parent_df.time_frequency, parent_df.output_variables,
+        :index_level, :expenditure, :index_relative, index_type, base_date)
+end
 
 
 """
@@ -57,6 +130,25 @@ function merge_one_period(df1::DataFrame, time_period::Integer, time_frequency::
 end
 
 """
+    merge_direct_periods(df1::DataFrame, productDefCols::Vector{Symbol}; 
+    outputLevelCols::Vector{Symbol}=Symbol[])
+
+    Merge the first period in a dataframe with all other rows to prepare for the calcualtion of a direct price index.
+"""
+function merge_direct_periods(df1::DataFrame, productDefCols::Vector{Symbol}; 
+    outputLevelCols::Vector{Symbol}=Symbol[])
+
+    base_df = df1[df1.time .== minimum(df1.time), :]
+
+    # [;] combines two vectors of symbols
+    joinCols = [productDefCols; outputLevelCols]
+
+    comboDF = innerjoin(base_df, df1, on=joinCols, makeunique=true, renamecols="_0" => "_1")
+    rename!(comboDF, :time_count_1 => :time_count)
+    return comboDF
+end
+
+"""
     date_to_period(date::Date, epoch::Date, time_unit::String)
 
     Take a date and a time unit and calculate the number of periods since epoch and create a time
@@ -104,8 +196,18 @@ function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
     end
 end
 
-
-
+function direct_index(prf::AbstractPriceFrame, index_formula::Function; base_value::Real = 100, kwargs...)
+    merge_df = merge_direct_periods(prf.price_df, prf.product_definition)
+    #Group by for relative output level
+    gdf = groupby(merge_df, vcat(prf.output_variables, :time_count))
+    ans = combine(gdf,   [Symbol(prf.price_variable,"_1"), Symbol(prf.price_variable,"_0"),
+                            Symbol(prf.quantity_variable,"_1"), Symbol(prf.quantity_variable,"_0") ] => 
+                            ( (p1, p0, q1, q0) -> index_formula(p1, p0, q1, q0; kwargs...) ) => :index_relative)
+    ans[!, :index_relative] *= base_value
+    base_date = period_to_date(minimum(prf.price_df.time_count), prf.epoch_date, prf.time_unit) 
+    IFdf = IndexFrame(ans, prf; index_type = "direct", base_date = base_date)
+    return IFdf
+end
 
 
 end #end module PriceRelativeFrame
