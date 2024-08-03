@@ -120,6 +120,7 @@ prodID = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 cesDF = DataFrame(time = time, prices = prices, quantities = quantities, prodID = prodID)
 
 @testset "PriceRelativeFrame Operations" begin
-    @test PriceIndexes.direct_index(PriceRelativeFrame(cesDF, Date(2000, 1,1), "months", 1, 
-        [:prodID], Symbol[], :prices, :quantities), laspeyres).price_df.index_relative[12] ≈ 1.3269 atol=1e-5
+    prf = PriceIndexes.PriceFrame(cesDF, Date(2000,1,1),"months",1, Symbol[], [:prodID], :prices, :quantities)
+    @test PriceIndexes.direct_index(prf, PriceIndexes.walsh).price_df.index_relative[12] ≈ 113.70031 atol=1e-5
+    @test PriceIndexes.direct_index(prf, PriceIndexes.jevons).price_df.index_relative[12] ≈ 92.86132 atol=1e-5
 end # @testset "PriceRelativeFrame Operations"

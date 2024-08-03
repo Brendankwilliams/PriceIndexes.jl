@@ -6,8 +6,8 @@ using .BilateralIndexFormulas
 include("MultilateralIndexFormulas.jl")
 using .MultilateralIndexFormulas
 
-include("PriceRelativeFrame.jl")
-using .PriceRelativeFrame
+include("PriceFrames.jl")
+using .PriceFrames
 
 using DataFrames, Statistics, StatsBase, Dates, LinearAlgebra
 
