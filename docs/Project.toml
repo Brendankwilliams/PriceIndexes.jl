@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PriceIndexes = "65be50f5-f1a3-46f9-a2e1-81d51e90197b"
