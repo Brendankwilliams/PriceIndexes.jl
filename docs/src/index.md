@@ -1,6 +1,15 @@
 # PriceIndexes.jl
 
-Documentation for PriceIndexes.jl
+PriceIndexes.jl is a Julia language package for calculating price indexes.
+
+In addition to traditional bilateral index formulas, this package includes newer multilateral methods that
+are more complex and computationally intensive. 
+
+The package builds on similar R-based packages including *PriceIndices* and *IndexNumR*.
+
+The package is designed so that data with product-level identifies, prices, quantities, and dates are converted into a 
+"PriceFrame" struct. Price index methods can then be applied to a PriceFrame to produce an "IndexFrame." IndexFrames
+contain price indexes which can then be aggregated into a second-stage aggregation.
 
 ## PriceFrames
 The PriceFrames module contains the basic structs and functions for users to set up data and generate price indexes.

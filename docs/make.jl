@@ -4,7 +4,7 @@ using PriceIndexes
 makedocs(
     sitename = "PriceIndexes",
     doctest = true,
-    format = Documenter.HTML(),
+    format = Documenter.HTML(sidebar_sitename = false),
     modules = [PriceIndexes],
     checkdocs=:exports #add to try and fix error
 )

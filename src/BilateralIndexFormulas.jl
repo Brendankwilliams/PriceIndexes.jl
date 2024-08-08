@@ -9,7 +9,7 @@ export laspeyres, paasche, fisher, carli, dutot, cswd, bmw, drobisch, tornqvist,
 @doc raw""" 
     laspeyres(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray )
 
-    Laspeyres function with only vectors as inputs
+Laspeyres function with only vectors as inputs
 
 ```math
     P_{Laspeyres}(p^{0},p^{1},q^{0}) =
@@ -25,7 +25,7 @@ end
 
 @doc raw"""
     paasche(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray )
-    Paasche function with only vectors as inputs
+Paasche function with only vectors as inputs
 
 ```math
     P_{Paasche}(p^{0},p^{1},q^{1}) =
@@ -49,7 +49,9 @@ end
 
 @doc raw"""
     fisher(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray )
-    Fisher price index
+The Fisher price index, the geometric average of Laspeyres and Paasche indexes. The Fisher price index
+was proposed by Irving Fisher as the "Ideal" price index based on its axiomatic properties. This index
+is also a "superlative" index.
 ```math
      P_{Fisher}(p^{0},p^{1},q^{0},q^{1}) = \sqrt{P_{Paasche}\cdot P_{Laspeyres}}
 ```
@@ -62,7 +64,7 @@ end
 @doc raw"""
     carli(p1::AbstractArray, p0::AbstractArray)
     
-    Carli price index, the arithmetic mean of price relatives
+The Carli price index, the arithmetic mean of price relatives.
 ```math
     P_{Carli}(p^{1},p^{0}) =
     \frac{1}{N}\sum_{n=1}^{N}\left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)
@@ -78,7 +80,7 @@ end
 @doc raw"""
     dutot(p1::AbstractArray, p0::AbstractArray)
 
-    The Dutot index, the ratio of the arithmetic means of prices in each period
+The Dutot index, the ratio of the arithmetic means of prices in each period.
 
 ```math
   P_{Dutot}(p^{0},p^{1}) = \frac{\sum_{n=1}^{N}p^{1}_{n}}{\sum_{n=1}^{N}p^{0}_{n}}
@@ -108,7 +110,9 @@ end
     harmonic(p1::AbstractArray, p0::AbstractArray)
 
 Also known as Coggeshall, the Harmonic mean of price relatives using the StatsBase function
-
+```math
+P_{Harmonic}(p^{0},p^{1}) = \bigl\{\frac{1}{N}\sum_{n=1}^{N} \left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)^{-1}\bigr\}^{-1}
+```
 """
 function harmonic(p1::AbstractArray, p0::AbstractArray)
     return harmmean((p1 ./ p0))
@@ -120,8 +124,12 @@ end
 @doc raw"""
     cswd(p1::AbstractArray, p0::AbstractArray)
 
-The Carruthers, Sellwood, Ward, Dalén index.
-     A geometric average of the Carli and the harmonic mean of price relatives index.
+The Carruthers, Sellwood, Ward, Dalén index. A geometric average of the Carli and the 
+harmonic mean of price relatives index.
+
+```math
+P_{CSWD}(p^{0},p^{1}) = \sqrt{P_{Carli}\cdot P_{Harmonic}}
+```
 """
 function cswd(p1::AbstractArray, p0::AbstractArray)
     return sqrt(harmonic(p1, p0) * carli(p1, p0))
@@ -132,8 +140,15 @@ end
 
 @doc raw"""
     bmw(p1::AbstractArray, p0::AbstractArray)
-    Balk-Mehrhoff-Walsh (BMW) index
 
+Balk-Mehrhoff-Walsh (BMW) index, an index of price relatives weighted by
+the square root of the inverse price relatives. The BMW is the linear approximation to the Jevons index. The BMW index was
+developed in Mehrhoff (2007).  Balk (2008) also developed the index as the unweighted Walsh.
+
+```math
+P_{BMW}(p^{0},p^{1})=\sum_{n=1} \frac{p_{i}^{1}}{p_{i}^{0}} 
+\frac{\sqrt{\frac{p_{i}^{0}}{p_{i}^{1}}}}{\sum_{n=1} \sqrt{\frac{p_{i}^{0}}{p_{i}^{1}}}}
+```
 """
 function bmw(p1::AbstractArray, p0::AbstractArray)
     numer = sum((p1 ./ p0) .* sqrt.(p0 ./ p1))
@@ -158,6 +173,10 @@ end
 
 @doc raw"""
     tornqvist(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
+
+Törnqvist index, the geometric average of price relatives weighted by the arithmetic average of weight shares
+between two periods. The Törnqvist is "superlative" and one of the most commonly used indexes when timely
+quantity or expenditure information is available.
 
 ```math
      P_{Törnqvist}(p^{0},p^{1},q^{0},q^{1}) =
@@ -196,7 +215,6 @@ end
 ```math
     P_{Geary-Khamis}(p^{0},p^{1},q^{0},q^{1}) = \frac{\sum_{n=1}^{N}h(q^{0}_{n},
     q^{1}_{n})p^{1}_{n}}{\sum_{n=1}^{N}h(q^{0}_{n}, q^{1}_{n})p^{0}_{n}}
-
 ```
 """
 function geary_khamis_bi(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
@@ -240,7 +258,14 @@ end
 
 @doc raw"""
     sato_vartia(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
-
+```math
+  P_{Sato-Vartia}(p^{0},p^{1},q^{0},q^{1}) =
+\prod_{n=1}^{N}\left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)^{
+\frac{s^{1}_{n}-s^{0}_{n}}{\log (s^{1}_{n}) - \log
+(s^{0}_{n})} \cdot \left ( \sum_{n=1}^{N}\frac{s^{1}_{n}-s^{0}_{n}}{\log (s^{1}_{n}) - \log
+(s^{0}_{n})} \right )^{-1}
+}
+```
 """
 function sato_vartia(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
     expend0 = p0 .* q0
@@ -273,7 +298,7 @@ end
 """
     vartia_L(a::Float64}, b::Float64)
 
-montgomery_vartia uses the method with float, while sato_vartia uses the method with float vectors
+montgomery-vartia uses the method with float, while sato-vartia uses the method with float vectors
 """
 function vartia_L(a::Float64, b::Float64)
     if b == a 
@@ -319,6 +344,18 @@ end
 @doc raw"""
     stuvel(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
 
+The Stuvel index unlike many superlative indexes, the Stuvel is consistent-in-aggregation. However,
+it is not linearly homogeneous. Proposed by G. Stuvel in the 1957 *Econometrica* article
+“A New Index Number Formula.” 
+```math
+    P_{Stuvel}(p^{{0}},p^{1},q^{{0}},q^{1}) = A + \sqrt{A^2 + V^{1}/V^{0}} \\
+```
+where
+```math
+    A = (P_{Laspeyres}-Q_{Laspeyres})/2 \\
+    Q_{Laspeyres} = \frac{\sum_{n=1}^{N}q^{1}_{n}p^{0}_{n}}{\sum_{n=1}^{N}q^{0}_{n}p^{0}_{n}}\\
+    V^{t} = p^{t} \cdot q^{t}
+```
 """
 function stuvel(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
     # A is the difference between the laspeyres price and quuantity indexes, divided by 2.0
@@ -331,7 +368,16 @@ end
 @doc raw"""
     lehr(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
 
-TBW
+```math
+P_{Lehr}(p^{0},p^{1},q^{0},q^{1}) = \frac{\sum v_i^1}{\sum v_i^0} \cdot \frac{\sum \left( v_i^0 \left( v_i^0 + v_i^1 \right) \left( v_i^0 + \frac{v_i^1}{r} \right) \right)}
+{\sum \left( v_i^1 \left( v_i^0 + v_i^1 \right) \left( v_i^0 r_i + v_i^1 \right) \right)}
+```
+where
+```math
+v_i^{t} = p_i^{t} \cdot q_i^{t} \\
+r_i = \frac{p_i^1}{p_i^0}
+```
+
 """
 function lehr(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
     expend0 = p0 .* q0
@@ -347,7 +393,18 @@ end
     banerjee(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
 
 On the factorial approach providing the true index of cost of living: an interpretation of a special pair of equations
-K.S. Banerjee (1977)
+K.S. Banerjee (1977).
+
+```math
+P_{Banerjee} = \frac{\sum v_i^1}{\sum v_i^0} \cdot 
+\frac{\sum \left( v_i^0 \left( 1 + r_i \right) \right)}
+{\sum \left( v_i^1 \left( 1 + \frac{1}{r_i} \right) \right)}
+```
+where
+```math
+v_i^{t} = p_i^{t} \cdot q_i^{t} \\
+r_i = \frac{p_i^1}{p_i^0}
+```
 """
 function banerjee(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
     expend0 = p0 .* q0
@@ -359,7 +416,16 @@ end
 @doc raw"""
     davies(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
 
-TBW
+```math
+P_{Davies} = \frac{\sum v_i^1}{\sum v_i^0} \cdot 
+\frac{\sum v_i^0 \sqrt{r_i}} 
+{\sum \left( v_i^1 \sqrt{\frac{1}{r_i}} \right) } 
+```
+where
+```math
+v_i^{t} = p_i^{t} \cdot q_i^{t} \\
+r_i = \frac{p_i^1}{p_i^0}
+```
 """
 function davies(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, q0::AbstractArray)
     expend0 = p0 .* q0
@@ -442,12 +508,21 @@ function geopaasche(p1::AbstractArray, p0::AbstractArray, q1::AbstractArray, ::A
     return geopaasche(p1, p0, q1)
 end
 
-@doc raw""""
-    ag_mean(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray)
+@doc raw"""
+    ag_mean(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray, η::Float64)
 
-    The AG Mean is the weighted average of the Laspeyres and geometric Laspeyres indexes with η indicating the
-    relative weight on each. Lent and Dorfman (2009) introduced this formula and it is discussed in Armknect and
-    Silver (2012).
+The AG Mean is the weighted average of the Laspeyres and geometric Laspeyres indexes with η indicating the
+relative weight on each. Lent and Dorfman (2009) introduced this formula and it is discussed in Armknect and
+Silver (2012).
+
+```math
+P_{AGmean}(p^{0},p^{1},q^{0}) =
+\eta^{\tau}
+\prod_{n=1}^{N}\left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)^{s^{0}_{n}}
++
+\left (1 - \eta^{\tau} \right )\sum_{n=1}^{N}s^{0}_{n}\frac{p^{1}_{n}}{p^{0}_{n}}
+```
+
 """
 function ag_mean(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray, η::Float64)
     return η * geolaspeyres(p1, p0, q0) + (1-η) * laspeyres(p1, p0, q0)

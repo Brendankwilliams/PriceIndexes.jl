@@ -21,6 +21,13 @@ mutable struct PriceFrame <: AbstractPriceFrame
     quantity_variable::Symbol
 
 
+    """
+    PriceFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, 
+        output_variables::Vector{Symbol}, product_definition::Vector{Symbol}, 
+        price_variable::Symbol, quantity_variable::Symbol)
+
+    TBW
+    """
     function PriceFrame(df::DataFrame, epoch_date::Date, time_unit::String, time_frequency::Integer, 
         output_variables::Vector{Symbol}, product_definition::Vector{Symbol}, 
         price_variable::Symbol, quantity_variable::Symbol)
@@ -46,6 +53,9 @@ end
 """
 #Create IndexFrame as a type of PriceFrame. Should inherit functions from PRF but allow new functions
 #e.g. to convert relatives 
+"""
+mutable struct IndexFrame <: AbstractPriceFrame
+"""
 mutable struct IndexFrame <: AbstractPriceFrame 
     price_df::DataFrame 
     epoch_date::Date
@@ -75,6 +85,14 @@ end
 #Constructor that inherits most values from a parent price relative frame
 #Use a January 1, 1978 epoch that starts on a Sunday to set a week definition with weeks starting on Sunday
 #NEED TO FIX EXPENDITURE
+
+"""
+    IndexFrame(index_df::DataFrame, parent_df::AbstractPriceFrame; index_type::String, base_date::Date)
+
+IndexFrame is a struct that contains the results from a first stage price index calculation. IndexFrames 
+inherit most of the functions from PriceFrames, which allow them to reuse the same functions for second-stage
+aggregations.
+"""
 function IndexFrame(index_df::DataFrame, parent_df::AbstractPriceFrame; index_type::String, base_date::Date)
     return IndexFrame(index_df, parent_df.epoch_date, parent_df.time_unit, parent_df.time_frequency, parent_df.output_variables,
         :index_level, :expenditure, :index_relative, index_type, base_date)
@@ -85,11 +103,11 @@ end
     merge_periods(df1::DataFrame, time_frequency::Integer,
     productDefCols::Vector{Symbol}, outputLevelCols::Vector{Symbol})
 
-    Merge dataframe with itself after incrementing the time index by frequency. The resulting dataframe
-    has price and weight information a single row to set up price index calclations. This version works across
-    all time periods in the dataframe and excludes unmatched prices. See merge_one_period for a version 
-    that works incrementaly to accomodate imputation.
-    Used in DataFrame portion of a PriceFrame.
+Merge dataframe with itself after incrementing the time index by frequency. The resulting dataframe
+has price and weight information a single row to set up price index calclations. This version works across
+all time periods in the dataframe and excludes unmatched prices. See merge_one_period for a version 
+that works incrementaly to accomodate imputation.
+Used in DataFrame portion of a PriceFrame.
 """
 function merge_periods(df1::DataFrame, time_frequency::Integer,
     productDefCols::Vector{Symbol}, outputLevelCols::Vector{Symbol})
@@ -110,8 +128,8 @@ end
     merge_one_period(df1::DataFrame, time_period::Integer, time_frequency::Integer,
     productDefCols::Vector{Symbol}, outputLevelCols::Vector{Symbol})
 
-    Incremental version of merge_periods that is designed to be called with a loop. Facilitates price index
-    calclations that use imputation.
+Incremental version of merge_periods that is designed to be called with a loop. Facilitates price index
+calclations that use imputation.
 """
 function merge_one_period(df1::DataFrame, time_period::Integer, time_frequency::Integer,
     productDefCols::Vector{Symbol}, outputLevelCols::Vector{Symbol})
@@ -133,8 +151,7 @@ end
     merge_direct_periods(df1::DataFrame, product_definition::Vector{Symbol}; 
     output_levels::Vector{Symbol}=Symbol[])
 
-
-    Merge the first period in a dataframe with all other rows to prepare for the calcualtion of a direct price index.
+Merge the first period in a dataframe with all other rows to prepare for the calcualtion of a direct price index.
 """
 function merge_direct_periods(df1::DataFrame, product_definition::Vector{Symbol}; 
     output_levels::Vector{Symbol}=Symbol[])
@@ -152,11 +169,11 @@ end
 """
     date_to_period(date::Date, epoch::Date, time_unit::String)
 
-    Take a date and a time unit and calculate the number of periods since epoch and create a time
-    period count that can faciltate price index calculations without having to manipulate dates. For periods
-    greater than "day," the first day of the period should represent the whole period. The epoch date 
-    establishes beginning of the time unit. For example, an epoch date on a Monday establishes a week
-    definition that starts on Monday, and an epoch date in September establishes a year that starts in September
+Takes a date and a time unit and calculate the number of periods since epoch and create a time
+period count that can faciltate price index calculations without having to manipulate dates. For periods
+greater than "day," the first day of the period should represent the whole period. The epoch date 
+establishes beginning of the time unit. For example, an epoch date on a Monday establishes a week
+definition that starts on Monday, and an epoch date in September establishes a year that starts in September
 """
 function date_to_period(date::Date, epoch::Date, time_unit::String)
     if time_unit == "days" 
@@ -177,9 +194,9 @@ end
 """
     period_to_date(period_count::Integer, epoch::Date, time_unit::String)
 
-    Convert a period count back to a date given an epoch date and time unit. 
-    After price index calculations have been completed, this function will convert calculation 
-    friendly period counts to user friendly dates.
+Convert a period count back to a date given an epoch date and time unit. 
+After price index calculations have been completed, this function will convert calculation 
+friendly period counts to user friendly dates.
 """
 function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
     if time_unit == "days" 
@@ -197,6 +214,12 @@ function period_to_date(period_count::Integer, epoch::Date, time_unit::String)
     end
 end
 
+"""
+    direct_index(prf::AbstractPriceFrame, index_formula::Function; base_value::Real = 100, kwargs...)
+
+Calculates a direct price index with the earliest time period take as the base period. Each subsequent
+time period is compared to the base period to generate a relative.
+"""
 function direct_index(prf::AbstractPriceFrame, index_formula::Function; base_value::Real = 100, kwargs...)
     merge_df = merge_direct_periods(prf.price_df, prf.product_definition; output_levels=prf.output_variables)
     #Group by for relative output level

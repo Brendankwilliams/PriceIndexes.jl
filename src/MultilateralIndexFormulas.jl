@@ -71,6 +71,13 @@ function geary_khamis(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Flo
     return p_index/p_index[1] #Normalize all periods by period 1, first period to 1
 end #function geary_khamis
 
+@doc raw"""
+    CCDI(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
+
+```math
+P_{CCDI}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{T}^{\tau, t}}{P_{T}^{\tau, 0}}\right)^{\frac{1}{T+1}}
+```
+"""
 function CCDI(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
     time_num, prod_num = size(price_matrix) 
 
@@ -90,6 +97,13 @@ function CCDI(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
     return results/results[1] #Normalize to first period and return results
 end
 
+@doc raw"""
+    GEKS(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
+
+```math
+P_{GEKS}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{F}^{\tau, t}}{P_{F}^{\tau, 0}}\right)^{\frac{1}{T+1}}
+```
+"""
 function GEKS(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
     time_num, prod_num = size(price_matrix) 
 
@@ -112,9 +126,9 @@ end
 """
     GEKS_general(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, index_formula::Function)
 
-    GEKS type multilateral calculation that takes a bilateral index_formula as an argument. When Tornqvist is
-    used this is equivalent to CCDI. When Fisher is used this is equivalent to GEKS. Only bilateral Formulas
-    with four arguments (price1, price0, quantity1, quantity0) are supported.
+GEKS type multilateral calculation that takes a bilateral index_formula as an argument. When Tornqvist is
+used this is equivalent to CCDI. When Fisher is used this is equivalent to GEKS. Only bilateral Formulas
+with four arguments (price1, price0, quantity1, quantity0) are supported.
 """
 function GEKS_general(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, index_formula::Function)
     time_num, prod_num = size(price_matrix) 
