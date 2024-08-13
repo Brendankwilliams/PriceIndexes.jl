@@ -326,7 +326,7 @@ end
 
 ```math
      P_{Lloyd-Moulton}(p^{0},p^{1},q^{0}) =
-\left[\sum_{n=1}^{N}s_{n}^{0}\left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)^{(1-\sigma)}\right]^{\left(\frac{1}{1-\sigma}\right)},
+\left[\sum_{n=1}^{N}s_{n}^{0}\left(\frac{p^{1}_{n}}{p^{0}_{n}}\right)^{(1-\sigma)}\right]^{\left(\frac{1}{1-\sigma}\right)}
 ```
 """
 function lloyd_moulton(p1::AbstractArray, p0::AbstractArray, q0::AbstractArray, σ::Float64)

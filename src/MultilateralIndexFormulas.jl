@@ -44,6 +44,19 @@ function geary_khamis(df::DataFrame)
     return p_index/p_index[1] #Normalize all periods by period 1, first period to 1
 end #function geary_khamis
 
+@doc raw"""
+    geary_khamis(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
+
+The multilateral formula for the Geary-Khamis index simulatenously solves for a quality factor, b,
+that is used to adjust the quantities along with the price index.
+
+```math
+b_{n} =
+\sum_{t=1}^{T}\left[\frac{q_{t, n}}{q_{n}}\right]\left[\frac{p_{t, n}}{P_{t}}\right] \\
+
+P_{t} = \frac{p^{t} \cdot q^{t}} {b \cdot q^{t}}
+```
+"""
 function geary_khamis(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
     time_num, prod_num = size(price_matrix) # Matrices are time period x product
     exp_matrix = price_matrix .* quantity_matrix
@@ -75,7 +88,7 @@ end #function geary_khamis
     CCDI(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
 
 ```math
-P_{CCDI}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{T}^{\tau, t}}{P_{T}^{\tau, 0}}\right)^{\frac{1}{T+1}}
+P_{CCDI}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{Törnqvist}^{\tau, t}}{P_{Törnqvist}^{\tau, 0}}\right)^{\frac{1}{T+1}}
 ```
 """
 function CCDI(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
@@ -101,7 +114,7 @@ end
     GEKS(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
 
 ```math
-P_{GEKS}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{F}^{\tau, t}}{P_{F}^{\tau, 0}}\right)^{\frac{1}{T+1}}
+P_{GEKS}^{0, t}=\prod_{\tau=0}^{T}\left(\frac{P_{Fisher}^{\tau, t}}{P_{Fisher}^{\tau, 0}}\right)^{\frac{1}{T+1}}
 ```
 """
 function GEKS(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64})
@@ -187,6 +200,21 @@ function similarity_score(price_matrix::Matrix{Float64}, quantity_matrix::Matrix
     return similarity_scores
 end
 
+
+@doc raw"""
+    similarity_linking(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, 
+    dissimilarity_measure::Function, index_formula::Function)
+
+Similarity linking creates a price index series where each new period is compared to the most similar or
+(least dissimilar) preceeding period based on dissimilarity_measure. Calculating each period consists of finding the
+most similar period, r, and using it as a stepping stone between the based period 0 and the current time t with the bridge 
+between the base period and r being the previous similarity index and the bridge between r and t being a bilateral 
+price index.
+
+```math
+P_{Similarity}^{0, t} = P_{Similarity}^{0, r} \cdot P(p^{r},p^{t},q^{r},q^{t})
+```
+"""
 function similarity_linking(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, 
     dissimilarity_measure::Function, index_formula::Function)
 
@@ -212,6 +240,13 @@ function similarity_linking(price_matrix::Matrix{Float64}, quantity_matrix::Matr
     
 end
 
+"""
+    spq(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, index_formula::Function)
+
+SPQ is a similarity linked index that uses the SPQ the minimum of the predicted share dissimilarity measures of The
+price and quantity.
+
+"""
 function spq(price_matrix::Matrix{Float64}, quantity_matrix::Matrix{Float64}, index_formula::Function)
     time_num = size(price_matrix)[1]
 
